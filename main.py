@@ -3,8 +3,11 @@ import streamlit as st
 from transformers import pipeline, AutoTokenizer
 import time
 
+
 # Получить id топ-3 моделей для работы с текстом
-model_id_list = get_top_three_models()
+@st.cache_resource
+def get_model_id_list():
+    return get_top_three_models()
 
 
 def get_processing_time(start_time):
@@ -16,7 +19,15 @@ def clear_text():
     st.session_state["text"] = ""
 
 
+@st.cache_resource
+def load_model(model_id):
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    summarizer = pipeline("summarization", model=model_id, tokenizer=tokenizer, use_fast=True)
+    return summarizer
+
+
 st.title("Text summarization")
+
 with st.container(border=True):
     text_input = st.text_area(label='Enter some text', key="text")
     with st.container():
@@ -29,11 +40,11 @@ with st.container(border=True):
 if summarize_button:
     # Показываем спиннер во время обработки данных
     with st.spinner("Text summarization..."):
+        model_id_list = get_model_id_list()
         i = 1
         for model_id in model_id_list:
             start_time = time.time()
-            tokenizer = AutoTokenizer.from_pretrained(model_id)
-            summarizer = pipeline("summarization", model=model_id, tokenizer=tokenizer, use_fast=True)
+            summarizer = load_model(model_id)
             short_text = summarizer(text_input, max_length=130, min_length=14, do_sample=False)
             with st.container():
                 st.text_area(
@@ -42,5 +53,6 @@ if summarize_button:
                     short_text[0]['summary_text'], key=f"result {i}")
                 i += 1
         st.success("Done!")
+
 if clear_button:
     st.rerun()
