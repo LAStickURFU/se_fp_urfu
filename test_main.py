@@ -1,8 +1,8 @@
 import pytest
 import time
-from main import load_model, get_processing_time, shorten_text, clear_text
+from main import get_processing_time, clear_text
 from huggingface_api import get_top_three_models
-from transformers import AutoTokenizer, SummarizationPipeline
+from streamlit.testing.v1 import AppTest
 
 
 def test_get_top_three_models():
@@ -19,13 +19,6 @@ def test_get_top_three_models_using_non_existent_pipline_tag():
         get_top_three_models(pipeline_tag='qwerty')
 
 
-def test_load_model():
-    model_id = "t5-base"
-    result = load_model(model_id)
-    print(type(result))
-    assert isinstance(result, SummarizationPipeline), "Should return a pipeline object"
-
-
 def test_get_processing_time():
     start_time = time.time()
     time.sleep(1)  # Simulate some processing time
@@ -34,9 +27,25 @@ def test_get_processing_time():
     assert result >= 1.0, "Should return the correct processing time"
 
 
-def test_shorten_text():
-    original_text = "This is a long piece of text that needs to be shortened."
-    model_id = "t5-base"
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    result = shorten_text(original_text, model_id, tokenizer)[0]['summary_text']
-    assert isinstance(result, str), "Should return a string"
+def test_get_title():
+    at = AppTest.from_file("main.py", default_timeout=60).run()
+    assert "Text summarization" in at.title[0].value
+
+
+def test_model_id_in_result_label():
+    model_id_list = get_top_three_models()
+    at = AppTest.from_file("main.py", default_timeout=60).run()
+    at.text_area(key="text").set_value("test").run()
+    at.columns[0].button(key='Summarize').click().run()
+    assert model_id_list[0] in at.main.text_area(key='result 1').label
+    assert model_id_list[1] in at.main.text_area(key='result 2').label
+    assert model_id_list[2] in at.main.text_area(key='result 3').label
+
+
+def test_get_result_value():
+    at = AppTest.from_file("main.py", default_timeout=60).run()
+    at.text_area(key="text").set_value("test test test test test test").run()
+    at.columns[0].button(key='Summarize').click().run()
+    assert 'test' in at.main.text_area(key='result 1').value
+    assert 'test' in at.main.text_area(key='result 2').value
+    assert 'test' in at.main.text_area(key='result 3').value
