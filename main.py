@@ -16,6 +16,7 @@ def load_model(model_id: str):
     model = pipeline("summarization", model=model_id, from_pt=True)
     return model
 
+initialization()
 
 def get_processing_time(start_time):
     processing_time = round(time.time() - start_time, 2)
@@ -59,5 +60,4 @@ if summarize_button:
 if clear_button:
     st.rerun()
 
-if __name__ == '__main__':
-    initialization()
+
