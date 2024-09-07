@@ -1,6 +1,6 @@
 import pytest
 import time
-from main import get_processing_time, clear_text
+from main import get_processing_time
 from huggingface_api import get_top_three_models
 from streamlit.testing.v1 import AppTest
 
