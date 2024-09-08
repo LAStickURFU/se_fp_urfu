@@ -3,3 +3,4 @@ sentencepiece
 transformers
 protobuf
 torch
+requests
