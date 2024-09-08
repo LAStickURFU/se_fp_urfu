@@ -4,3 +4,4 @@ transformers
 protobuf
 torch
 requests
+pytest
